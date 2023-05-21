@@ -25,6 +25,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'debug_toolbar',
+    'rest_framework',
+    'products.apps.ProductsConfig',
 ]
 
 INTERNAL_IPS = os.getenv('INTERNAL_IPS', default='127.0.0.1').split()
@@ -37,6 +40,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'drf.urls'
@@ -96,12 +100,11 @@ USE_I18N = True
 
 USE_TZ = True
 
+MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/media/'
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'static'
 
-STATICFILES_DIRS = [
-    BASE_DIR / 'static_dev',
-]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
