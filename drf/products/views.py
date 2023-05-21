@@ -16,17 +16,17 @@ import products.serializers
 #     serializer_class = products.serializers.ProductsSerializer
 
 
-class ProductsListAPIView(rest_framework.views.APIView):
+class ProductAPIView(rest_framework.views.APIView):
     """список продуктов"""
 
     def get(
         self, request: django.http.HttpRequest
     ) -> django.http.HttpResponse:
-        """обработка get-запроса"""
+        """получение списка продуктов"""
         product_list = products.models.Product.objects.all().values()
         return rest_framework.response.Response(
             {
-                'products': products.serializers.ProductSerializer(
+                'get': products.serializers.ProductSerializer(
                     product_list, many=True
                 ).data
             }
@@ -35,21 +35,42 @@ class ProductsListAPIView(rest_framework.views.APIView):
     def post(
         self, request: django.http.HttpRequest
     ) -> django.http.HttpResponse:
-        """обработка post-запроса"""
+        """создание продукта"""
         product_serializer = products.serializers.ProductSerializer(
             data=request.data
         )
         product_serializer.is_valid(raise_exception=True)
-
-        new_product = products.models.Product.objects.create(
-            name=request.data['name'],
-            description=request.data['description'],
-            category_id=request.data['category_id'],
-        )
+        product_serializer.save()
         return rest_framework.response.Response(
-            {
-                'success': products.serializers.ProductSerializer(
-                    new_product
-                ).data
-            }
+            {'post': product_serializer.data}
         )
+
+    def put(
+        self, request: django.http.HttpRequest, pk: int
+    ) -> django.http.HttpResponse:
+        """обновление продукта"""
+        product = products.models.Product.objects.filter(pk=pk).first()
+        if not product:
+            return rest_framework.response.Response(
+                {'error': 'product is not found'}
+            )
+        product_serializer = products.serializers.ProductSerializer(
+            data=request.data, instance=product
+        )
+        product_serializer.is_valid(raise_exception=True)
+        product_serializer.save()
+        return rest_framework.response.Response(
+            {'put': product_serializer.data}
+        )
+
+    def delete(
+        self, request: django.http.HttpRequest, pk: int
+    ) -> django.http.HttpResponse:
+        """удаление продукта"""
+        product = products.models.Product.objects.filter(pk=pk).first()
+        if not product:
+            return rest_framework.response.Response(
+                {'error': 'product not found'}
+            )
+        product.delete()
+        return rest_framework.response.Response({'delete': 'success'})
