@@ -1,3 +1,4 @@
+import django.contrib.auth.models
 import django.db.models
 
 
@@ -50,7 +51,16 @@ class Product(django.db.models.Model):
         verbose_name='категория',
         help_text='Категория, к которой относится продукт',
         to=Category,
-        on_delete=django.db.models.DO_NOTHING,
+        on_delete=django.db.models.PROTECT,
+        related_name='products',
+    )
+
+    user = django.db.models.ForeignKey(
+        verbose_name='пользователь',
+        help_text='Пользователь, создавший продукт',
+        to=django.contrib.auth.models.User,
+        on_delete=django.db.models.CASCADE,
+        related_name='products',
     )
 
     class Meta:

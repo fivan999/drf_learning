@@ -8,6 +8,9 @@ import django.urls
 urlpatterns = [
     django.urls.path('admin/', django.contrib.admin.site.urls),
     django.urls.path('api/v1/', django.urls.include('products.urls')),
+    django.urls.path(
+        'api/v1/drf-auth/', django.urls.include('rest_framework.urls')
+    ),
 ]
 
 if django.conf.settings.DEBUG:

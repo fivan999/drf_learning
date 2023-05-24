@@ -1,76 +1,75 @@
+import rest_framework.decorators
 import rest_framework.generics
+import rest_framework.permissions
 import rest_framework.response
-import rest_framework.views
-
-import django.forms
-import django.http
+import rest_framework.viewsets
 
 import products.models
+import products.permissions
 import products.serializers
 
 
-# class ProductsListAPIView(rest_framework.generics.ListAPIView):
-#     """список продуктов"""
+# class ProductViewSet(rest_framework.viewsets.ModelViewSet):
+#     """вюсет для продукта"""
 
-#     queryset = products.models.Product.objects.all()
-#     serializer_class = products.serializers.ProductsSerializer
+#     serializer_class = products.serializers.ProductSerializer
+
+#     def get_queryset(self) -> django.db.models.QuerySet:
+#         data = products.models.Product.objects.select_related('category')
+#         pk = self.kwargs.get('pk')
+#         if pk:
+#             return data.filter(pk=pk)
+#         return data[:3]
+
+#     @rest_framework.decorators.action(methods=['get'], detail=True)
+#     def category(
+#         self, request: django.http.HttpRequest, pk: int
+#     ) -> django.http.HttpResponse:
+#         """получаем категорию нужного прдукта"""
+#         category = products.models.Category.objects.filter(
+#             products__pk=pk
+#         ).first()
+#         response_data = (
+#             {'category': category.name}
+#             if category
+#             else {'detail': 'Страница не найдена.'}
+#         )
+#         return rest_framework.response.Response(response_data)
+
+#     @rest_framework.decorators.action(methods=['get'], detail=False)
+#     def categories(
+#         self, request: django.http.HttpRequest
+#     ) -> django.http.HttpResponse:
+#         """список категорий"""
+#         return rest_framework.response.Response(
+#             {
+#                 'categories':
+#                 products.serializers.CategorySerializer(
+#                     products.models.Category.objects.all(), many=True
+#                 ).data
+#             }
+#         )
 
 
-class ProductAPIView(rest_framework.views.APIView):
-    """список продуктов"""
+class ProductListCreateAPIView(rest_framework.generics.ListCreateAPIView):
+    """список продуктов и их создание"""
 
-    def get(
-        self, request: django.http.HttpRequest
-    ) -> django.http.HttpResponse:
-        """получение списка продуктов"""
-        product_list = products.models.Product.objects.all().values()
-        return rest_framework.response.Response(
-            {
-                'get': products.serializers.ProductSerializer(
-                    product_list, many=True
-                ).data
-            }
-        )
+    serializer_class = products.serializers.ProductSerializer
+    permission_classes = (
+        rest_framework.permissions.IsAuthenticatedOrReadOnly,
+    )
 
-    def post(
-        self, request: django.http.HttpRequest
-    ) -> django.http.HttpResponse:
-        """создание продукта"""
-        product_serializer = products.serializers.ProductSerializer(
-            data=request.data
-        )
-        product_serializer.is_valid(raise_exception=True)
-        product_serializer.save()
-        return rest_framework.response.Response(
-            {'post': product_serializer.data}
-        )
+    def get_queryset(self):
+        return products.models.Product.objects.all()[:3]
 
-    def put(
-        self, request: django.http.HttpRequest, pk: int
-    ) -> django.http.HttpResponse:
-        """обновление продукта"""
-        product = products.models.Product.objects.filter(pk=pk).first()
-        if not product:
-            return rest_framework.response.Response(
-                {'error': 'product is not found'}
-            )
-        product_serializer = products.serializers.ProductSerializer(
-            data=request.data, instance=product
-        )
-        product_serializer.is_valid(raise_exception=True)
-        product_serializer.save()
-        return rest_framework.response.Response(
-            {'put': product_serializer.data}
-        )
 
-    def delete(
-        self, request: django.http.HttpRequest, pk: int
-    ) -> django.http.HttpResponse:
-        """удаление продукта"""
-        product = products.models.Product.objects.filter(pk=pk).first()
-        if not product:
-            return rest_framework.response.Response(
-                {'error': 'product not found'}
-            )
-        product.delete()
-        return rest_framework.response.Response({'delete': 'success'})
+class ProductRetreiveUpdateDestroyAPIView(
+    rest_framework.generics.RetrieveUpdateDestroyAPIView
+):
+    """обновление и удаление отдельного продукта"""
+
+    queryset = products.models.Product
+    serializer_class = products.serializers.ProductSerializer
+    permission_classes = (
+        products.permissions.IsProductOwnerOrAdminOrReadOnly,
+    )
