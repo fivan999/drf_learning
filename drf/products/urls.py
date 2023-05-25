@@ -20,6 +20,6 @@ urlpatterns = [
     django.urls.path(
         'products/<int:pk>/',
         products.views.ProductRetreiveUpdateDestroyAPIView.as_view(),
-        name='list-create',
+        name='detail',
     ),
 ]

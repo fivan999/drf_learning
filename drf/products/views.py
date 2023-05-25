@@ -1,3 +1,4 @@
+import rest_framework.authentication
 import rest_framework.decorators
 import rest_framework.generics
 import rest_framework.permissions
@@ -55,9 +56,10 @@ class ProductListCreateAPIView(rest_framework.generics.ListCreateAPIView):
     """список продуктов и их создание"""
 
     serializer_class = products.serializers.ProductSerializer
-    permission_classes = (
-        rest_framework.permissions.IsAuthenticatedOrReadOnly,
-    )
+    permission_classes = (rest_framework.permissions.IsAuthenticated,)
+    # authentication_classes = (
+    #     rest_framework_simplejwt.authentication.JWTAuthentication,
+    # )
 
     def get_queryset(self):
         return products.models.Product.objects.all()[:3]
